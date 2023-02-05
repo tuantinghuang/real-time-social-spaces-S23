@@ -2,6 +2,8 @@
 {
     margin: 0;
     padding: 0;
+    font-family: 'Cabin', sans-serif;
+    text-transform: uppercase;
 }
 
 .webgl
@@ -9,24 +11,40 @@
     position: fixed;
     top: 0;
     left: 0;
+    z-index: -1;
 }
+
 
 .section
 {
-    display: flex;
-    align-items: center;
     height: 100vh;
-    position: relative;
     font-family: 'Cabin', sans-serif;
-    color: #ebebeb;
+    color: #ffffff17;
     text-transform: uppercase;
     font-size: 7vmin;
     padding-left: 10%;
+    padding-top:30%;
     padding-right: 10%;
     will-change: transform;
 }
 
-section:nth-child(odd)
+.section> h2
 {
-    justify-content: flex-end;
+    font-size:4vmin;
+}
+
+.float
+{
+    position:fixed;
+    top:20px;
+    left:10%;
+    color: #ffffff;
+    font-size: 1vmin;
+    z-index: 1;
+}
+
+a
+{
+    text-decoration: none;
+    color: #ffffff;
 }

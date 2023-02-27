@@ -1,0 +1,64 @@
+html {
+    margin: 0;
+    height: 100%;
+    font-family:  Helvetica, sans-serif;
+    color:rgb(49, 49, 49); 
+  }
+
+.title{
+    font-size: 1.3rem;
+    font-weight: bold;
+  }
+
+body {
+  font-size: 1.1rem;
+  overscroll-behavior: none;
+  
+}
+
+.main{
+  position:fixed;
+  margin:0;
+  padding:0;
+  top:0;
+  left:0;
+  display:grid;
+  grid-template-columns: 4fr 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: 
+  "grid1 grid2";
+}
+
+.grid1{
+    width: 75vw;
+    padding: 0px;
+    margin:0px;
+    position: static; /* fixed or static */
+    grid-area: grid1;
+  }
+
+.grid2{
+  padding:15px;
+  margin-right:10px;
+  /* background-color: white; */
+  overflow-wrap: break-word;
+
+    width:25vw;
+    height:100%;
+    position: static;
+    grid-area:grid2;
+  }
+
+#objects{
+    color:rgb(49, 49, 49);
+    font-weight: normal;
+    font-size:1rem;
+    position:fixed;
+    top:10px;
+    left:10px;
+    z-index:1;
+  }
+
+  hr{
+    border-top: 1px solid black;
+  }

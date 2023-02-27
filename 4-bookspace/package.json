@@ -1,0 +1,14 @@
+{
+  "name": "4-bookspace",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "books-com-tw-crawler": "^1.1.2"
+  }
+}

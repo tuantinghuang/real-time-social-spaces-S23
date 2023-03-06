@@ -15,6 +15,8 @@ renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
 let scene = new THREE.Scene();
+//let scene = new THREE.Scene();
+//scene1.background = new THREE.Color(0xffffff);
 let cam_r = 3;
 let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000000);
 camera.position.set(0, 0, cam_r);
@@ -84,7 +86,8 @@ uniforms['sunPosition'].value.copy(sun);
 
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.2;
+renderer.toneMappingExposure = 0.8;
+
 
 
 
@@ -119,6 +122,7 @@ function render() {
         geo.attributes.position.needsUpdate = true;
     }
     renderer.render(scene, camera);
+    //renderer.render(scene1, camera);
     requestAnimationFrame(render);
 }
 

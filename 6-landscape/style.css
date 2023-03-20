@@ -1,0 +1,50 @@
+html{
+    margin:none;
+    padding:none;
+}
+.title{
+    position:fixed;
+    right:50px;
+    padding:10px;
+    margin:20px;
+    z-index: 2;
+    color: aliceblue;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 20;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 1px solid black;
+    border-radius: 20px;
+    width:250px;
+    display:none;
+
+}
+
+img{
+    width:150px;
+}
+#container{
+    position:fixed;
+    z-index: 2;
+    width:300px;
+}
+.comment{
+    padding:10px;
+    margin:20px;
+    z-index: 2;
+    color: rgb(255, 255, 255);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 20;
+    background-color: rgba(218, 249, 255, 0.5);
+    border: 1px solid rgb(255, 255, 255);
+    border-radius: 20px;
+    width:250px;
+    display:none;
+
+}
+
+#webgl{
+    z-index: -1;
+    position:fixed;
+    left:0px;
+    top:0px;
+}

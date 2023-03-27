@@ -10,8 +10,22 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="container"></div>
-    <div id="container2"></div>
+    <div id="infoContainer"></div>
+    <div id="commentContainer"></div>
+
+    <!-- interface: add new book  -->
+    <button id="addNewBook">ADD NEW</button>
+    <div id="NewBook">
+      <label>Title</label>
+      <input id="bookTitle" type="text" />
+      <br />
+      <label>ISBN</label>
+      <input id="bookISBN" type="text" />
+      <br />
+      <button id="jsonbtn">Submit Entry</button>
+      <p id="jsontext"></p>
+    </div>
+
     <script type="importmap">
       {
         "imports": {
@@ -20,7 +34,7 @@
         }
       }
     </script>
-    <!-- <script type="module" src="portal.js"></script> -->
     <script type="module" src="index.js" async defer></script>
+    <script src="addBook.js"></script>
   </body>
 </html>

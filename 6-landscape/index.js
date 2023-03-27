@@ -1,22 +1,14 @@
 import * as THREE from 'three';
-//import Portal from './portal'
+import { Portal } from './portal.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { AfterimagePass } from 'three/addons/postprocessing/AfterimagePass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-let commentData = [
-    "Masterful Storytelling With Striking, Memorable Characters",
-    "This book is so utterly pretentiousness and trying so hard to be woke that I should have given up on it instead of seeing it to the end. I would have if the beginning hadn’t been so beautifully done. There’s a line in the book about a video game sequel being awful because it was farmed out to Indian programmers who had no interest in the game and that’s how this book feels after the incredible start. ",
-    "Going back to sleep - will review soon… I Loved loved loved it!!!!!! Absolutely one my year’s favorite!!!!",
-    "Obviously, I'm in the minority here, but I wasn't particularly enthralled.",
-    "this book made my heart ache."
-]
 
 const params = {
-    exposure: 0.01,
+    exposure: 0.1,
     bloomStrength: 0.6,
     bloomThreshold: 0.2,
     bloomRadius: 0.1
@@ -26,7 +18,32 @@ let bloomPass, composer;
 let scene, renderer, camera, controls;
 let terrain;
 let texture;
-let portal;
+let portals = [];
+let time = 0;
+let data;
+
+async function getData() {
+    const requestURL = "./data.json";
+    const request = new Request(requestURL);
+    const response = await fetch(request);
+    data = await response.json();
+
+    if (data.length > 0) {
+
+        for (let i = 0; i < data.length; i++) {
+            let p = new Portal(i * 20 - data.length * 20 / 2, 5, i * 20 - data.length * 20 / 2, scene, i);
+            let particle_num = data[i].comments.length;
+            p.centerFrame();
+            p.createParticles(particle_num);
+
+            let cover = new THREE.TextureLoader().load(data[i].img, function (data) {
+                p.drawPlane(data);
+            });
+
+            portals.push(p);
+        }
+    }
+}
 
 function init() {
     scene = new THREE.Scene();
@@ -39,13 +56,11 @@ function init() {
     canvas.setAttribute('id', 'webgl');
     document.body.appendChild(canvas);
 
-
-
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(50, 30, 60);
     controls = new OrbitControls(camera, renderer.domElement);
 
-
+    //evironment
     texture = new THREE.TextureLoader().load("assets/render.png", function (data) {
         makeTerrain(data);
 
@@ -57,20 +72,10 @@ function init() {
     light.position.set(0, 100, 10);
     scene.add(light);
 
-    portal = new Portal(0, 5, 0);
-    portal.centerFrame();
-    scene.add(portal.circlemesh);
-    scene.add(portal.light1);
-    scene.add(portal.framemesh);
-    portal.createParticles(10);
+}
 
-    let cover_texture = new THREE.TextureLoader().load("assets/tomorrow-tomorrow-tomorrow.jpeg", function (data) {
-        portal.drawPlane(data);
-    });
+function postProcessing() {
 
-
-
-    //post processing
     composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
@@ -80,8 +85,6 @@ function init() {
     bloomPass.strength = params.bloomStrength;
     bloomPass.radius = params.bloomRadius;
     composer.addPass(bloomPass);
-
-
 }
 
 
@@ -94,18 +97,33 @@ function makeTerrain(texture) {
     scene.add(terrain);
 }
 
-let time = 0;
+
 function render() {
     requestAnimationFrame(render);
 
-    portal.movePlane();
-    portal.moveParticles();
+    if (portals && portals.length > 0) {
+        for (let p of portals) {
+            p.movePlane();
+            p.moveParticles(time);
+            p.checkDistance(camera);
 
-    checkDistance(camera, portal);
+            //after checking distance
+            if (p.displayInfo != p.displayInfo_prev) {
+                if (p.displayInfo) {
+                    populate(p.id);
+                } else {
+                    clearDiv();
+                }
+                p.displayInfo_prev = p.displayInfo
+            }
 
-    composer.render();
-    //renderer.render(scene, camera);
-    time += 1;
+        }
+
+
+        composer.render();
+        //renderer.render(scene, camera);
+        time += 1;
+    }
 }
 
 //event listener - camera control
@@ -140,242 +158,85 @@ function moveCamera(e) {
 //----------------------------------------------HTML info display ------------------------------------------
 
 
-function checkDistance(camera, portal) {
-    let d = camera.position.distanceTo(portal.center);
-    //console.log(d);
-    if (d < 15) {
-        displayInfo(true);
-    } else {
-        displayInfo(false);
-    }
+async function populate(id) {
+    const requestURL = "./data.json";
+    const request = new Request(requestURL);
+    const response = await fetch(request);
+    const data = await response.json();
 
+    populateInfo(data[id]);
+    populateComment(data[id]);
 }
 
-let prev_on = false;
-
-function displayInfo(on) {
-
-    if (on != prev_on) {
-        if (on) {
-            let container2 = document.getElementById("container2");
-            let div = document.createElement("div");
-            div.className = "title";
-            div.style.display = "block";
-            div.appendChild(document.createTextNode("Tomorrow, and tomorrow, and tomorrow"));
-            div.appendChild(document.createElement("br"))
-            div.appendChild(document.createElement("br"))
-            div.appendChild(document.createTextNode("by Gabrielle Zevin"));
-            div.appendChild(document.createElement("br"));
-            div.appendChild(document.createElement("br"));
-            let img = document.createElement("img");
-            img.src = "assets/tomorrow-tomorrow-tomorrow.jpeg";
-
-            div.appendChild(img);
-            container2.appendChild(div);
-
-
-            let container = document.getElementById("container");
-            for (let c of commentData) {
-
-                let div = document.createElement("div");
-                div.className = "comment";
-                div.style.display = "block";
-                let txt = document.createTextNode(c);
-                div.appendChild(txt);
-                container.appendChild(div);
-            }
-        }
-        if (!on) {
-            document.getElementById("container").innerHTML = "";
-            document.getElementById("container2").innerHTML = "";
-        }
-    }
-
-    prev_on = on;
-
+function clearDiv() {
+    let comment = document.querySelector("#commentContainer");
+    comment.innerHTML = "";
+    comment.style.display = "none";
+    let info = document.querySelector("#infoContainer");
+    info.innerHTML = "";
+    info.style.display = "none";
 }
 
 
+function populateInfo(data) {
+    if (data) {
+        let container = document.querySelector("#infoContainer");
+        container.style.display = "block";
 
-//----------------------------------- PORTAL ------------------------------------------------
+        let title = document.createElement("h1");
+        let author = document.createElement("h2");
+        let isbn = document.createElement("p");
+        let status = document.createElement('p');
 
-
-
-let circlegeo = new THREE.CircleGeometry(4, 32, 32);
-let circlemat = new THREE.MeshLambertMaterial({
-    color: 0xccccff,
-    side: THREE.DoubleSide,
-})
-
-let framemat = new THREE.MeshLambertMaterial({
-    color: 0xccccff,
-    side: THREE.DoubleSide,
-})
-
-let planegeo = new THREE.PlaneGeometry(4, 10, 5, 5);
+        title.textContent = data.name;
+        author.textContent = data.author;
+        isbn.textContent = data.isbn;
+        status.textContent = data.status;
 
 
-class Portal {
-    constructor(x, y, z) {
-        this.center = new THREE.Vector3(x, y, z);
-        this.circlemesh = new THREE.Mesh(circlegeo, circlemat);
-
-        this.framegeo;
-        this.framemesh;
-
-        //cover image
-        this.meshes = [];
-
-        //particle
-        this.particles = [];
-        this.particles_ypos = [];
-        this.curves = [];
-
-
+        container.appendChild(title);
+        container.appendChild(author);
+        container.appendChild(isbn);
+        container.appendChild(status);
     }
-    createFrame(sizeX, sizeY, width) {
+}
 
-        let shape = new THREE.Shape([
-            new THREE.Vector2(0, 0),
-            new THREE.Vector2(sizeX, 0),
-            new THREE.Vector2(sizeX, sizeY),
-            new THREE.Vector2(0, sizeY)
-        ]);
+function populateComment(data) {
+    if (data) {
 
-        let hole = new THREE.Path([
-            new THREE.Vector2(width, width),
-            new THREE.Vector2(width, sizeY - width),
-            new THREE.Vector2(sizeX - width, sizeY - width),
-            new THREE.Vector2(sizeX - width, width)
-        ]);
+        let container = document.querySelector("#commentContainer");
+        let header = document.createElement("h2");
+        header.textContent = "activity logs";
+        container.appendChild(header);
 
-        shape.holes.push(hole);
-        return shape
-    }
+        container.style.display = "block";
+        for (let i = 0; i < data.comments.length; i++) {
 
-    centerFrame() {
-        const extrudeSettings = { depth: 0.2, bevelEnabled: false, bevelSegments: 2, steps: 2, bevelSize: 0.1, bevelThickness: 0.1 };
+            let p = document.createElement("p");
+            p.className = "comment"
+            p.textContent = data.comments[i];
+            container.appendChild(p);
 
-        this.framegeo = new THREE.ExtrudeGeometry(this.createFrame(4.2, 11, 0.2), extrudeSettings);
-        this.framemesh = new THREE.Mesh(this.framegeo, framemat);
 
-        this.circlemesh.position.set(this.center.x, this.center.y - planegeo.parameters.height / 2, this.center.z);
-        this.circlemesh.rotateX(-Math.PI / 2);
-        this.framemesh.position.set(this.center.x - 2.1, this.center.y - 5.5, this.center.z + 0.1);
-
-    }
-
-    drawPlane(texture) {
-        let xgrid = 30;
-        let ygrid = 20;
-        let mesh;
-        let materials = [];
-        let count = 0;
-
-        let i, j, ox, oy, geo;
-        const ux = 1 / xgrid;
-        const uy = 1 / ygrid;
-
-        const xsize = planegeo.parameters.width / xgrid;
-        const ysize = planegeo.parameters.height / ygrid * 2;
-
-        const param = { color: 0xffffff, map: texture, sheen: 5, side: THREE.DoubleSide };
-        count = 0;
-
-        for (i = 0; i < xgrid; i++) {
-            for (j = 0; j < ygrid; j++) {
-                ox = i;
-                oy = j;
-                geo = new THREE.PlaneGeometry(xsize, ysize);
-                this.change_uvs(geo, ux, uy, ox, oy);
-                materials[count] = new THREE.MeshPhysicalMaterial(param);
-
-                mesh = new THREE.Mesh(geo, materials[count]);
-                mesh.position.x = this.center.x + (i - xgrid / 2) * xsize;
-                mesh.position.y = this.center.y + (j - ygrid / 2) * ysize;
-                mesh.position.z = this.center.z + 0.1;
-
-                mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
-
-                scene.add(mesh);
-                this.meshes[count] = mesh;
-
-                count++;
-
-            }
-        }
-    }
-
-    change_uvs(geometry, unitx, unity, offsetx, offsety) {
-        const uvs = geometry.attributes.uv.array;
-        for (let i = 0; i < uvs.length; i += 2) {
-            uvs[i] = (uvs[i] + offsetx) * unitx;
-            uvs[i + 1] = (uvs[i + 1] + offsety) * unity;
-        }
-    }
-
-    movePlane() {
-
-        for (let i = 0; i < this.meshes.length; i++) {
-            this.meshes[i].position.y -= Math.random() * 0.1;
-            if (this.meshes[i].position.y <= this.center.y - planegeo.parameters.height / 2) {
-                this.meshes[i].position.y = this.center.y + planegeo.parameters.height / 2;
-            }
-        }
-    }
-
-    createParticles(num) {
-        let geo = new THREE.SphereGeometry(0.1, 16, 8);
-
-        for (let i = 0; i < num; i++) {
-            this.particles[i] = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xccccff }));
-            this.particles[i].position.x = this.center.x + (Math.round(Math.random()) ? 1 : -1) * Math.random() * 4;
-            this.particles_ypos[i] = this.center.y - Math.random();
-            this.particles[i].position.z = this.center.z + (Math.round(Math.random()) ? 1 : -1) * Math.random() * 4;
-
-            scene.add(this.particles[i]);
-
-            let x = (this.particles[i].position.x - this.center.x) / 2;
-            let z = (this.particles[i].position.z - this.center.z) / 2;
-            //create curve lines
-            const curve = new THREE.QuadraticBezierCurve3(
-                new THREE.Vector3(x, 0, z),
-                new THREE.Vector3(this.center.x + x, this.center.y, this.center.z + z),
-                new THREE.Vector3(this.particles[i].position.x, this.particles_ypos[i], this.particles[i].position.z)
-            );
-
-            const points = curve.getPoints(50);
-            const geometry = new THREE.BufferGeometry();
-            geometry.setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: 0xccccff });
-            // Create the final object to add to the scene
-            this.curves[i] = new THREE.Line(geometry, material);
-            this.curves[i].curve = curve;
-
-            scene.add(this.curves[i])
-        }
-    }
-    moveParticles() {
-        for (let i = 0; i < this.particles.length; i++) {
-            this.particles[i].position.y = this.particles_ypos[i] + Math.sin(time * 0.01 + i) * 0.25;
-
-            //update curve
-
-            let curveLine = this.curves[i];
-            //update y pos of the 3rd vertex in the curve path
-            curveLine.curve.v2.y = this.particles[i].position.y;
-
-            curveLine.geometry.setFromPoints(curveLine.curve.getPoints(50));
-
-            // Let's three.js know that vertices are changed
-            curveLine.geometry.verticesNeedUpdate = true;
         }
 
-
     }
+}
 
+window.addEventListener("mousemove", passCursorToCss);
+
+function passCursorToCss(e) {
+
+    let x = e.clientX;
+    let y = e.clientY;
+    document.documentElement.style.setProperty('--x', x / innerWidth);
+    document.documentElement.style.setProperty('--y', y / innerHeight);
 
 }
+
+
 
 init();
+getData();
+postProcessing();
 render();

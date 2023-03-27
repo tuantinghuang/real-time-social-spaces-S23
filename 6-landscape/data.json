@@ -1,0 +1,37 @@
+[
+    {
+        "name":"Tomorrow, and Tomorrow, and Tomorrow",
+        "author": "Gabrielle Zevin",
+        "isbn":"9780593321201",
+        "comments":[
+            "so good",
+            "too good",
+            "could be better"
+        ],
+        "status":"read",
+        "img":"assets/tomorrow-tomorrow-tomorrow.jpeg"
+    },
+    {
+        "name":"Metaphors We Live By",
+        "author": "George Lackoff",
+        "isbn":"9780226468013",
+        "comments":[
+            "metaphors are great",
+            "sophisticated",
+            "can I borrow this book?"
+        ],
+        "status":"reading",
+        "img":"assets/metaphors-we-live-by.jpeg"
+    },
+    {
+        "name":"All About Love",
+        "author": "Bell Hooks",
+        "isbn":"9780226468013",
+        "comments":[
+            "love is great",
+            "i need this"
+        ],
+        "status":"read",
+        "img":"assets/all-about-love.jpeg"
+    }
+]

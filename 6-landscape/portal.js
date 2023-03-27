@@ -1,6 +1,25 @@
+import * as THREE from 'three';
 
-export default class Portal {
-    constructor(x, y, z) {
+
+
+export class Portal {
+    constructor(x, y, z, scene, id) {
+
+        this.scene = scene;
+
+        let circlegeo = new THREE.CircleGeometry(4, 32, 32);
+        let circlemat = new THREE.MeshLambertMaterial({
+            color: 0xccccff,
+            side: THREE.DoubleSide,
+        })
+
+        this.framemat = new THREE.MeshLambertMaterial({
+            color: 0xccccff,
+            side: THREE.DoubleSide,
+        })
+
+        this.planegeo = new THREE.PlaneGeometry(4, 10, 5, 5);
+
         this.center = new THREE.Vector3(x, y, z);
         this.circlemesh = new THREE.Mesh(circlegeo, circlemat);
 
@@ -14,10 +33,17 @@ export default class Portal {
         this.particles = [];
         this.particles_ypos = [];
         this.curves = [];
+        this.scene.add(this.circlemesh);
+        this.scene.add(this.light1);
 
+        //display information
+        this.displayInfo = false;
+        this.displayInfo_prev = false;
+
+        this.id = id;
 
     }
-    createFrame(sizeX, sizeY, width) {
+    drawFrame(sizeX, sizeY, width) {
 
         let shape = new THREE.Shape([
             new THREE.Vector2(0, 0),
@@ -40,10 +66,10 @@ export default class Portal {
     centerFrame() {
         const extrudeSettings = { depth: 0.2, bevelEnabled: false, bevelSegments: 2, steps: 2, bevelSize: 0.1, bevelThickness: 0.1 };
 
-        this.framegeo = new THREE.ExtrudeGeometry(this.createFrame(4.2, 11, 0.2), extrudeSettings);
-        this.framemesh = new THREE.Mesh(this.framegeo, framemat);
-
-        this.circlemesh.position.set(this.center.x, this.center.y - planegeo.parameters.height / 2, this.center.z);
+        this.framegeo = new THREE.ExtrudeGeometry(this.drawFrame(4.2, 11, 0.2), extrudeSettings);
+        this.framemesh = new THREE.Mesh(this.framegeo, this.framemat);
+        this.scene.add(this.framemesh);
+        this.circlemesh.position.set(this.center.x, this.center.y - this.planegeo.parameters.height / 2, this.center.z);
         this.circlemesh.rotateX(-Math.PI / 2);
         this.framemesh.position.set(this.center.x - 2.1, this.center.y - 5.5, this.center.z + 0.1);
 
@@ -60,10 +86,10 @@ export default class Portal {
         const ux = 1 / xgrid;
         const uy = 1 / ygrid;
 
-        const xsize = planegeo.parameters.width / xgrid;
-        const ysize = planegeo.parameters.height / ygrid * 2;
+        const xsize = this.planegeo.parameters.width / xgrid;
+        const ysize = this.planegeo.parameters.height / ygrid * 2;
 
-        const param = { color: 0xffffff, map: texture, sheen: 5, side: THREE.DoubleSide };
+        const param = { color: 0xffffff, sheen: 5, side: THREE.DoubleSide, map: texture };
         count = 0;
 
         for (i = 0; i < xgrid; i++) {
@@ -81,7 +107,7 @@ export default class Portal {
 
                 mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
 
-                scene.add(mesh);
+                this.scene.add(mesh);
                 this.meshes[count] = mesh;
 
                 count++;
@@ -102,8 +128,8 @@ export default class Portal {
 
         for (let i = 0; i < this.meshes.length; i++) {
             this.meshes[i].position.y -= Math.random() * 0.1;
-            if (this.meshes[i].position.y <= this.center.y - planegeo.parameters.height / 2) {
-                this.meshes[i].position.y = this.center.y + planegeo.parameters.height / 2;
+            if (this.meshes[i].position.y <= this.center.y - this.planegeo.parameters.height / 2) {
+                this.meshes[i].position.y = this.center.y + this.planegeo.parameters.height / 2;
             }
         }
     }
@@ -113,19 +139,22 @@ export default class Portal {
 
         for (let i = 0; i < num; i++) {
             this.particles[i] = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xccccff }));
+
+            //random x and z pos within the radius
             this.particles[i].position.x = this.center.x + (Math.round(Math.random()) ? 1 : -1) * Math.random() * 4;
-            this.particles_ypos[i] = this.center.y - Math.random();
+            this.particles[i].position.y = this.center.y - Math.random();
             this.particles[i].position.z = this.center.z + (Math.round(Math.random()) ? 1 : -1) * Math.random() * 4;
 
-            scene.add(this.particles[i]);
+            this.scene.add(this.particles[i]);
 
-            let x = (this.particles[i].position.x - this.center.x) / 2;
-            let z = (this.particles[i].position.z - this.center.z) / 2;
+            let x = this.center.x + (this.particles[i].position.x - this.center.x) / 2;
+            let z = this.center.z + (this.particles[i].position.z - this.center.z) / 2;
+
             //create curve lines
             const curve = new THREE.QuadraticBezierCurve3(
                 new THREE.Vector3(x, 0, z),
-                new THREE.Vector3(this.center.x + x, this.center.y, this.center.z + z),
-                new THREE.Vector3(this.particles[i].position.x, this.particles_ypos[i], this.particles[i].position.z)
+                new THREE.Vector3(x, this.center.y, z),
+                new THREE.Vector3(this.particles[i].position.x, this.particles[i].position.y, this.particles[i].position.z)
             );
 
             const points = curve.getPoints(50);
@@ -136,12 +165,13 @@ export default class Portal {
             this.curves[i] = new THREE.Line(geometry, material);
             this.curves[i].curve = curve;
 
-            scene.add(this.curves[i])
+            this.scene.add(this.curves[i])
         }
     }
-    moveParticles() {
+    moveParticles(time) {
+
         for (let i = 0; i < this.particles.length; i++) {
-            this.particles[i].position.y = this.particles_ypos[i] + Math.sin(time * 0.01 + i) * 0.25;
+            this.particles[i].position.y += Math.sin(time * 0.01 + i) * 0.005;
 
             //update curve
 
@@ -154,8 +184,16 @@ export default class Portal {
             // Let's three.js know that vertices are changed
             curveLine.geometry.verticesNeedUpdate = true;
         }
+    }
 
-
+    checkDistance(camera) {
+        let d = camera.position.distanceTo(this.center);
+        //console.log(d);
+        if (d < 15) {
+            this.displayInfo = true;
+        } else {
+            this.displayInfo = false;
+        }
     }
 
 

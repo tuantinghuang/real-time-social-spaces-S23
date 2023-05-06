@@ -1,0 +1,15 @@
+html{
+    margin:0;
+    padding:0;
+}
+
+#webgl{
+    width:100vw;
+    height:100vh;
+    z-index: -1;
+    margin:0px;
+    padding:0px;
+    top:0px;
+    left:0px;
+    position:fixed;
+}

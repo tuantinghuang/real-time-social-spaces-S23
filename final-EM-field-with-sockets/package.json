@@ -1,0 +1,16 @@
+{
+  "name": "final-em-field-with-sockets",
+  "version": "0.0.1",
+  "description": "a physics engine with sockets",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  }
+}
